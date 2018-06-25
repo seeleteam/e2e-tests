@@ -30,16 +30,19 @@ func Test_SolidityFiles(t *testing.T) {
 
 	// execute commands and validate outputs in config file.
 	cmdPrefix := "vm "
+	commentPrefix1 := "#"
+	commentPrefix2 := "//"
 	outputs := make(map[string]bool)
 	for i, line := range strings.Split(string(config), "\n") {
-		// ignore empty line
-		if line = strings.TrimSpace(line); len(line) == 0 {
+		// ignore empty line and comment line
+		if line = strings.TrimSpace(line); len(line) == 0 || strings.HasPrefix(line, commentPrefix1) || strings.HasPrefix(line, commentPrefix2) {
 			continue
 		}
 
 		if strings.HasPrefix(line, cmdPrefix) {
 			outputs = execute(t, exeFile, line[len(cmdPrefix):])
 		} else if !outputs[line] {
+			fmt.Println("outputs:", outputs)
 			t.Fatalf("Failed to assert output, line = %v", i+1)
 		}
 	}
@@ -62,9 +65,9 @@ func execute(t *testing.T, exeFile, args string) map[string]bool {
 			continue
 		}
 
-		if lines[l] {
+		/* if lines[l] {
 			t.Fatalf("Found 2 same lines in simulator execution outputs: %v", l)
-		}
+		} */
 
 		lines[l] = true
 	}

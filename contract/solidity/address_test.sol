@@ -6,4 +6,8 @@ contract TestAddress {
     function set(address x) public {
         home = x;
     }
+
+    function sets(address[] x) pure public returns(address[]){
+        return x;
+    }
 }
