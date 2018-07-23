@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/scorredoira/email"
 )
@@ -23,8 +22,8 @@ const (
 	Sender     = "wangfeifan@zsbatech.com"
 	Password   = "Wff19940326..."
 	SenderName = "Seele-e2e"
-	// Receivers  = "wangfeifan@zsbatech.com;wangfeifan@zsbatech.com"
-	Receivers = "liuwensi@zsbatech.com;jiazhiwei@zsbatech.com;libingyi@zsbatech.com;qiaozhigang@zsbatech.com;qiubo@zsbatech.com;tianyu@zsbatech.com;wangfeifan@zsbatech.com;yanpeng@zsbatech.com;yanpengfei@zsbatech.com;zhoushengkun@zsbatech.com;yangmingyan@zsbatech.com;"
+	// Receivers  = "zhoushengkun@zsbatech.com;wangfeifan@zsbatech.com"
+	Receivers = "liuwensi@zsbatech.com;jiazhiwei@zsbatech.com;libingyi@zsbatech.com;qiaozhigang@zsbatech.com;qiubo@zsbatech.com;tianyu@zsbatech.com;wangfeifan@zsbatech.com;yanpeng@zsbatech.com;yanpengfei@zsbatech.com;zhoushengkun@zsbatech.com;yangmingyan@zsbatech.com"
 	Host      = "smtp.exmail.qq.com:25"
 
 	StartHour = 04
@@ -37,18 +36,19 @@ var (
 )
 
 func main() {
-	for {
-		now := time.Now()
-		next := now.Add(time.Hour * 24)
-		next = time.Date(next.Year(), next.Month(), next.Day(), StartHour, StartMin, StartSec, 0, next.Location())
-		fmt.Println("now:", now)
-		fmt.Println("next:", next)
-		t := time.NewTimer(next.Sub(now))
-		<-t.C
-		t.Stop()
-		fmt.Println("Go")
-		DoTest()
-	}
+	DoTest()
+	// for {
+	// 	now := time.Now()
+	// 	next := now.Add(time.Hour * 24)
+	// 	next = time.Date(next.Year(), next.Month(), next.Day(), StartHour, StartMin, StartSec, 0, next.Location())
+	// 	fmt.Println("now:", now)
+	// 	fmt.Println("next:", next)
+	// 	t := time.NewTimer(next.Sub(now))
+	// 	<-t.C
+	// 	t.Stop()
+	// 	fmt.Println("Go")
+	// 	DoTest()
+	// }
 
 }
 
