@@ -1,0 +1,13 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "pRBq9l4YtisAqVwo/uXC/vDwCY8=",
+			"path": "github.com/scorredoira/email",
+			"revision": "ce6dfab97c7ac801aa09ab6f3275f4534f25734b",
+			"revisionTime": "2017-07-20T07:27:58Z"
+		}
+	],
+	"rootPath": "github.com/seeleteam/e2e-tests/e2e-tests"
+}
