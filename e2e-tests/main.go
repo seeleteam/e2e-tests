@@ -9,8 +9,10 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/scorredoira/email"
+	"github.com/seeleteam/e2e-tests/store"
 )
 
 // config.go
@@ -22,7 +24,7 @@ const (
 	Sender     = "wangfeifan@zsbatech.com"
 	Password   = "Wff19940326..."
 	SenderName = "Seele-e2e"
-	// Receivers  = "zhoushengkun@zsbatech.com;wangfeifan@zsbatech.com"
+	// Receivers  = "wangfeifan@zsbatech.com"
 	Receivers = "liuwensi@zsbatech.com;jiazhiwei@zsbatech.com;libingyi@zsbatech.com;qiaozhigang@zsbatech.com;qiubo@zsbatech.com;tianyu@zsbatech.com;wangfeifan@zsbatech.com;yanpeng@zsbatech.com;yanpengfei@zsbatech.com;zhoushengkun@zsbatech.com;yangmingyan@zsbatech.com"
 	Host      = "smtp.exmail.qq.com:25"
 
@@ -36,50 +38,60 @@ var (
 )
 
 func main() {
-	DoTest()
-	// for {
-	// 	now := time.Now()
-	// 	next := now.Add(time.Hour * 24)
-	// 	next = time.Date(next.Year(), next.Month(), next.Day(), StartHour, StartMin, StartSec, 0, next.Location())
-	// 	fmt.Println("now:", now)
-	// 	fmt.Println("next:", next)
-	// 	t := time.NewTimer(next.Sub(now))
-	// 	<-t.C
-	// 	t.Stop()
-	// 	fmt.Println("Go")
-	// 	DoTest()
-	// }
+	for {
+		now := time.Now()
+		next := now.Add(time.Hour * 24)
+		next = time.Date(next.Year(), next.Month(), next.Day(), StartHour, StartMin, StartSec, 0, next.Location())
+		fmt.Println("now:", now)
+		fmt.Println("next:", next)
+		t := time.NewTimer(next.Sub(now))
+		<-t.C
+		t.Stop()
+		fmt.Println("Go")
+		DoTest(now.Format("20060102"))
+	}
 
 }
 
 // DoTest seele test
-func DoTest() {
-	message := "嘿嘿😁, 测一下行不行啊\n\n"
-
+func DoTest(date string) {
 	workPath := filepath.Join(SeelePath, "/...")
-	message += build(workPath)
+	fmt.Printf("date:%s workPath:%s\n", date, workPath)
+
+	buildresult := build(workPath)
+	coverresult := cover(workPath)
+	benchresult := bench(workPath)
+	store.Save(date, buildresult, coverresult, benchresult)
+
+	message := ""
+	if buildresult != "" || strings.Contains(coverresult, "FAIL") || strings.Contains(benchresult, "FAIL") {
+		message += "😦 Appears to be a bug!\n\n"
+	} else {
+		message += "😁 Good day with no error~\n\n"
+	}
+	message += "\n=============Go build seele started. ===============\n" + buildresult
 	message += "=============Go build seele completed. ===============\n\n"
 
-	message += cover(workPath)
+	message += "\n=============Go cover seele started. ===============\n" + coverresult
 	message += "=============Go cover seele completed. ===============\n\n"
 
-	message += bench(workPath)
+	message += "\n=============Go bench seele started. ===============\n" + benchresult
 	message += "=============Go bench seele completed. ===============\n\n"
 
 	sendEmail(message, attachFile)
 
-	fmt.Println(message, attachFile)
-	filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
-		if strings.Contains(path, "main.go") || path == "." {
-			return nil
-		}
+	// fmt.Println(message, attachFile)
+	// filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
+	// 	if strings.Contains(path, "main.go") || path == "." {
+	// 		return nil
+	// 	}
 
-		fmt.Println("remove path:", path)
-		if err := os.Remove(path); err != nil {
-			fmt.Println("remove err:", err)
-		}
-		return nil
-	})
+	// 	fmt.Println("remove path:", path)
+	// 	if err := os.Remove(path); err != nil {
+	// 		fmt.Println("remove err:", err)
+	// 	}
+	// 	return nil
+	// })
 }
 
 func build(buildPath string) string {
