@@ -24,9 +24,9 @@ const (
 	Sender     = "wangfeifan@zsbatech.com"
 	Password   = "Wff19940326..."
 	SenderName = "Seele-e2e"
-	// Receivers  = "wangfeifan@zsbatech.com"
-	Receivers = "liuwensi@zsbatech.com;jiazhiwei@zsbatech.com;libingyi@zsbatech.com;qiaozhigang@zsbatech.com;qiubo@zsbatech.com;tianyu@zsbatech.com;wangfeifan@zsbatech.com;yanpeng@zsbatech.com;yanpengfei@zsbatech.com;zhoushengkun@zsbatech.com;yangmingyan@zsbatech.com"
-	Host      = "smtp.exmail.qq.com:25"
+	Receivers  = "wangfeifan@zsbatech.com"
+	// Receivers = "rdc@zsbatech.com"
+	Host = "smtp.exmail.qq.com:25"
 
 	StartHour = 04
 	StartMin  = 00
@@ -34,11 +34,14 @@ const (
 )
 
 var (
-	attachFile = []string{CoverFileName + ".html"}
+	attachFile = []string{}
 )
 
 func main() {
-	for {
+	now := time.Now()
+	next := now.Add(time.Hour * 24)
+	DoTest(now.Format("20060102"), next.Format("20060102"))
+	/* 	for {
 		now := time.Now()
 		next := now.Add(time.Hour * 24)
 		next = time.Date(next.Year(), next.Month(), next.Day(), StartHour, StartMin, StartSec, 0, next.Location())
@@ -48,20 +51,24 @@ func main() {
 		<-t.C
 		t.Stop()
 		fmt.Println("Go")
-		DoTest(now.Format("20060102"))
-	}
-
+		DoTest(now.Format("20060102"), next.Format("20060102"))
+	} */
 }
 
 // DoTest seele test
-func DoTest(date string) {
+func DoTest(yesterday, today string) {
+	if updateresult := updateSeele(); updateresult != "" {
+		fmt.Println("updateresult:", updateresult)
+		return
+	}
+
 	workPath := filepath.Join(SeelePath, "/...")
-	fmt.Printf("date:%s workPath:%s\n", date, workPath)
+	fmt.Printf("date:%s workPath:%s\n", today, workPath)
 
 	buildresult := build(workPath)
 	coverresult := cover(workPath)
 	benchresult := bench(workPath)
-	store.Save(date, buildresult, coverresult, benchresult)
+	store.Save(today, buildresult, coverresult, benchresult)
 
 	message := ""
 	if buildresult != "" || strings.Contains(coverresult, "FAIL") || strings.Contains(benchresult, "FAIL") {
@@ -80,18 +87,25 @@ func DoTest(date string) {
 
 	sendEmail(message, attachFile)
 
-	// fmt.Println(message, attachFile)
-	// filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
-	// 	if strings.Contains(path, "main.go") || path == "." {
-	// 		return nil
-	// 	}
+	fmt.Println(message, attachFile)
+	filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
+		if strings.Contains(path, "main.go") || path == "." {
+			return nil
+		}
 
-	// 	fmt.Println("remove path:", path)
-	// 	if err := os.Remove(path); err != nil {
-	// 		fmt.Println("remove err:", err)
-	// 	}
-	// 	return nil
-	// })
+		fmt.Println("remove path:", path)
+		if err := os.Remove(path); err != nil {
+			fmt.Println("remove err:", err)
+		}
+		return nil
+	})
+}
+
+func updateSeele() string {
+	if updateout, err := exec.Command("git", "pull").Output(); err != nil {
+		return fmt.Sprintf("update err: %s\n%s", err, string(updateout))
+	}
+	return ""
 }
 
 func build(buildPath string) string {
@@ -116,19 +130,20 @@ func cover(coverPath string) string {
 		return fmt.Sprintf("tool cover err: %s\n", err)
 	}
 
+	attachFile = append(attachFile, CoverFileName+".html")
 	return string(coverout)
 }
 
 func bench(benchPath string) string {
 	// go test github.com/seeleteam/go-seele/... -bench=.
-	benchout, err := exec.Command("go", "test", benchPath, "-bench=.").Output()
+	benchout, err := exec.Command("go", "test", benchPath, "-bench=.", "-run", "Benchmark").Output()
 	if err != nil {
 		return fmt.Sprintf("bench err: %s\n%s", err, string(benchout))
 	}
 
 	walkPath := filepath.Join(os.Getenv("GOPATH"), "src", SeelePath)
 	filepath.Walk(walkPath, func(path string, f os.FileInfo, err error) error {
-		if strings.Contains(path, ".git") || strings.Contains(path, "cmd") || strings.Contains(path, "vendor") || !f.IsDir() {
+		if strings.Contains(path, "vendor") || strings.Contains(path, "crypto") || !f.IsDir() {
 			return nil
 		}
 
@@ -146,7 +161,7 @@ func bench(benchPath string) string {
 		}
 
 		// go tool pprof -svg core.prof  core.svg
-		profout, err := exec.Command("go", "tool", "pprof", "-svg", cpuName+".prof", "", cpuName+".svg").Output()
+		profout, err := exec.Command("go", "tool", "pprof", "-svg", cpuName+".prof", ">", cpuName+".svg").Output()
 		if err != nil {
 			fmt.Println(fmt.Errorf("profout err: %s\n%s", err, string(profout)))
 			return nil
