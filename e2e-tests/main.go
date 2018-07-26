@@ -86,8 +86,6 @@ func DoTest(yesterday, today string) {
 	message += "=============Go bench seele completed. ===============\n\n"
 
 	sendEmail(message, attachFile)
-
-	fmt.Println(message, attachFile)
 	filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
 		if strings.Contains(path, "main.go") || path == "." {
 			return nil
@@ -103,7 +101,7 @@ func DoTest(yesterday, today string) {
 
 func updateSeele() string {
 	if updateout, err := exec.Command("git", "pull").Output(); err != nil {
-		return fmt.Sprintf("update err: %s\n%s", err, string(updateout))
+		return fmt.Sprintf("update err: %s %s", err, string(updateout))
 	}
 	return ""
 }
@@ -112,7 +110,7 @@ func build(buildPath string) string {
 	// go build github.com/seeleteam/go-seele/...
 	buildout, err := exec.Command("go", "build", buildPath).Output()
 	if err != nil {
-		return fmt.Sprintf("build err: %s\n%s", err, string(buildout))
+		return fmt.Sprintf("build err: %s %s", err, string(buildout))
 	}
 
 	return ""
@@ -120,9 +118,9 @@ func build(buildPath string) string {
 
 func cover(coverPath string) string {
 	// go test github.com/seeleteam/go-seele/... -coverprofile=seele_cover
-	coverout, err := exec.Command("go", "test", coverPath, "-coverprofile="+CoverFileName).Output()
+	coverout, err := exec.Command("go", "test", coverPath, "-coverprofile="+CoverFileName).CombinedOutput()
 	if err != nil {
-		return fmt.Sprintf("cover err: %s\n%s", err, string(coverout))
+		return fmt.Sprintf("cover err: %s %s", err, string(coverout))
 	}
 
 	// go tool cover -html=covprofile -o coverage.html
@@ -135,39 +133,42 @@ func cover(coverPath string) string {
 }
 
 func bench(benchPath string) string {
-	// go test github.com/seeleteam/go-seele/... -bench=.
-	benchout, err := exec.Command("go", "test", benchPath, "-bench=.", "-run", "Benchmark").Output()
-	if err != nil {
-		return fmt.Sprintf("bench err: %s\n%s", err, string(benchout))
-	}
-
-	walkPath := filepath.Join(os.Getenv("GOPATH"), "src", SeelePath)
+	benchout, walkPath := "", filepath.Join(os.Getenv("GOPATH"), "src", SeelePath)
 	filepath.Walk(walkPath, func(path string, f os.FileInfo, err error) error {
-		if strings.Contains(path, "vendor") || strings.Contains(path, "crypto") || !f.IsDir() {
+		if strings.Contains(path, ".git") || strings.Contains(path, "vendor") || strings.Contains(path, "crypto") || !f.IsDir() {
 			return nil
 		}
 
-		// go test github.com/seeleteam/go-seele/core -bench=. -cpuprofile core.prof
+		// go test github.com/seeleteam/go-seele/... -bench=. -run Benchmark
 		path = path[strings.Index(path, "src")+4:]
-		cpuName := path[strings.LastIndex(path, "\\")+1:]
-		cpuout, err := exec.Command("go", "test", path, "-bench=.", "-cpuprofile", cpuName+".prof").Output()
+		out, err := exec.Command("go", "test", path, "-bench=.", "-run", "Benchmark").CombinedOutput()
 		if err != nil {
-			fmt.Println(fmt.Errorf("cpuout err: %s\n%s", err, string(cpuout)))
+			if strings.Contains(string(out), "no Go files") {
+				return nil
+			}
+			benchout += fmt.Sprintf("path: %s\nbench err: %s %s", path, err, string(out))
 			return nil
 		}
 
-		if strings.Contains(string(cpuout), "no test files") {
+		benchout += string(out)
+		if strings.Contains(string(out), "no test files") {
+			return nil
+		}
+
+		// go test github.com/seeleteam/go-seele/core -bench=. -cpuprofile core.prof -run Benchmark
+		cpuName := path[strings.LastIndex(path, "\\")+1:]
+		cpuout, err := exec.Command("go", "test", path, "-bench=.", "-cpuprofile", cpuName+".prof", "-run", "Benchmark").CombinedOutput()
+		if err != nil {
+			fmt.Println(fmt.Errorf("cpuout err: %s %s", err, string(cpuout)))
 			return nil
 		}
 
 		// go tool pprof -svg core.prof  core.svg
 		profout, err := exec.Command("go", "tool", "pprof", "-svg", cpuName+".prof", ">", cpuName+".svg").Output()
 		if err != nil {
-			fmt.Println(fmt.Errorf("profout err: %s\n%s", err, string(profout)))
+			fmt.Println(fmt.Errorf("profout err: %s %s", err, string(profout)))
 			return nil
 		}
-
-		// fmt.Println("profout:", string(profout))
 
 		if err := ioutil.WriteFile(cpuName+"_cpu_detail.svg", profout, os.ModePerm); err != nil {
 			fmt.Printf("writefile err: %s\n", err)
@@ -177,13 +178,13 @@ func bench(benchPath string) string {
 		return nil
 	})
 
-	return string(benchout)
+	return benchout
 }
 
 func sendEmail(message string, attachFile []string) {
+	fmt.Println(message, attachFile)
 	msg := email.NewMessage(Subject, message)
-	msg.From = mail.Address{Name: SenderName, Address: Sender}
-	msg.To = strings.Split(Receivers, ";")
+	msg.From, msg.To = mail.Address{Name: SenderName, Address: Sender}, strings.Split(Receivers, ";")
 	for _, filePath := range attachFile {
 		if err := msg.Attach(filePath); err != nil {
 			fmt.Printf("failed to add attach file. path: %s, err: %s\n", filePath, err)
