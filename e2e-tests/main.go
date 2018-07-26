@@ -91,7 +91,7 @@ func DoTest(yesterday, today string) {
 
 	sendEmail(message, attachFile)
 	filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
-		if strings.Contains(path, "main.go") || path == "." {
+		if strings.Contains(path, "main") || path == "." {
 			return nil
 		}
 
