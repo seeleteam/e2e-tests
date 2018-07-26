@@ -100,7 +100,7 @@ func DoTest(yesterday, today string) {
 }
 
 func updateSeele() string {
-	if updateout, err := exec.Command("git", "pull").Output(); err != nil {
+	if updateout, err := exec.Command("git", "pull").CombinedOutput(); err != nil {
 		return fmt.Sprintf("update err: %s %s", err, string(updateout))
 	}
 	return ""
@@ -108,7 +108,7 @@ func updateSeele() string {
 
 func build(buildPath string) string {
 	// go build github.com/seeleteam/go-seele/...
-	buildout, err := exec.Command("go", "build", buildPath).Output()
+	buildout, err := exec.Command("go", "build", buildPath).CombinedOutput()
 	if err != nil {
 		return fmt.Sprintf("build err: %s %s", err, string(buildout))
 	}
@@ -124,7 +124,7 @@ func cover(coverPath string) string {
 	}
 
 	// go tool cover -html=covprofile -o coverage.html
-	if _, err := exec.Command("go", "tool", "cover", "-html="+CoverFileName, "-o", CoverFileName+".html").Output(); err != nil {
+	if err := exec.Command("go", "tool", "cover", "-html="+CoverFileName, "-o", CoverFileName+".html").Run(); err != nil {
 		return fmt.Sprintf("tool cover err: %s\n", err)
 	}
 
