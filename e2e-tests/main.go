@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"time"
 
@@ -24,9 +25,9 @@ const (
 	Sender     = "wangfeifan@zsbatech.com"
 	Password   = "Wff19940326..."
 	SenderName = "Seele-e2e"
-	Receivers  = "wangfeifan@zsbatech.com"
-	// Receivers = "rdc@zsbatech.com"
-	Host = "smtp.exmail.qq.com:25"
+	// Receivers  = "wangfeifan@zsbatech.com"
+	Receivers = "rdc@zsbatech.com"
+	Host      = "smtp.exmail.qq.com:25"
 
 	StartHour = 04
 	StartMin  = 00
@@ -38,10 +39,10 @@ var (
 )
 
 func main() {
-	now := time.Now()
-	next := now.Add(time.Hour * 24)
-	DoTest(now.Format("20060102"), next.Format("20060102"))
-	/* 	for {
+	// now := time.Now()
+	// next := now.Add(time.Hour * 24)
+	// DoTest(now.Format("20060102"), next.Format("20060102"))
+	for {
 		now := time.Now()
 		next := now.Add(time.Hour * 24)
 		next = time.Date(next.Year(), next.Month(), next.Day(), StartHour, StartMin, StartSec, 0, next.Location())
@@ -52,7 +53,7 @@ func main() {
 		t.Stop()
 		fmt.Println("Go")
 		DoTest(now.Format("20060102"), next.Format("20060102"))
-	} */
+	}
 }
 
 // DoTest seele test
@@ -66,8 +67,11 @@ func DoTest(yesterday, today string) {
 	fmt.Printf("date:%s workPath:%s\n", today, workPath)
 
 	buildresult := build(workPath)
+	fmt.Println("build done")
 	coverresult := cover(workPath)
+	fmt.Println("cover done")
 	benchresult := bench(workPath)
+	fmt.Println("bench done")
 	store.Save(today, buildresult, coverresult, benchresult)
 
 	message := ""
@@ -156,7 +160,12 @@ func bench(benchPath string) string {
 		}
 
 		// go test github.com/seeleteam/go-seele/core -bench=. -cpuprofile core.prof -run Benchmark
-		cpuName := path[strings.LastIndex(path, "\\")+1:]
+		ostype, cpuName := runtime.GOOS, ""
+		if ostype == "windows" {
+			cpuName = path[strings.LastIndex(path, "\\")+1:]
+		} else {
+			cpuName = path[strings.LastIndex(path, "/")+1:]
+		}
 		cpuout, err := exec.Command("go", "test", path, "-bench=.", "-cpuprofile", cpuName+".prof", "-run", "Benchmark").CombinedOutput()
 		if err != nil {
 			fmt.Println(fmt.Errorf("cpuout err: %s %s", err, string(cpuout)))
@@ -164,7 +173,7 @@ func bench(benchPath string) string {
 		}
 
 		// go tool pprof -svg core.prof  core.svg
-		profout, err := exec.Command("go", "tool", "pprof", "-svg", cpuName+".prof", ">", cpuName+".svg").Output()
+		profout, err := exec.Command("go", "tool", "pprof", "-svg", cpuName+".prof", ">", cpuName+".svg").CombinedOutput()
 		if err != nil {
 			fmt.Println(fmt.Errorf("profout err: %s %s", err, string(profout)))
 			return nil
