@@ -4,13 +4,11 @@ pwd
 ls
 git pull
 
+mkdir $GOPATH/src/github.com/seeleteam/go-seele/e2e
 go build -o main
-workPath = $GOPATH/src/github.com/seeleteam/go-seele/e2e
-echo workpPath:$workPath
-mkdir $workPath
-mv -f main $workPath
+mv -f main $GOPATH/src/github.com/seeleteam/go-seele/e2e
 
-cd $workPath
+cd $GOPATH/src/github.com/seeleteam/go-seele/e2e
 pwd
 ls
 
