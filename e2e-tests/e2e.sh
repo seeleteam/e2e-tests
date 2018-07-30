@@ -5,9 +5,12 @@ ls
 git pull
 
 go build -o main
-mv -f main $GOPATH/src/github.com/seeleteam/go-seele/e2e
+workPath = $GOPATH/src/github.com/seeleteam/go-seele/e2e
+echo workpPath:$workPath
+mkdir $workPath
+mv -f main $workPath
 
-cd $GOPATH/src/github.com/seeleteam/go-seele/e2e
+cd $workPath
 pwd
 ls
 
