@@ -4,7 +4,7 @@ package config
 const (
 	SeelePath     = "github.com/seeleteam/go-seele"
 	CoverFileName = "seele_coverage_detail"
-	CoverPackage  = "common\t,core\t,trie\t"
+	CoverPackage  = "common\t,core\t,trie\t,p2p\t,seele\t"
 
 	Subject    = "Daily Test Report"
 	Sender     = "wangfeifan@zsbatech.com"

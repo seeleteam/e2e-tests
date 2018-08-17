@@ -26,6 +26,7 @@ func main() {
 	// now := time.Now()
 	// next := now.Add(time.Hour * 24)
 	// DoTest(now.Format("20060102"), next.Format("20060102"))
+	yesterday := time.Now()
 	for {
 		now := time.Now()
 		next := now.Add(time.Hour * 24)
@@ -35,8 +36,12 @@ func main() {
 		t := time.NewTimer(next.Sub(now))
 		<-t.C
 		t.Stop()
-		fmt.Println("Go")
-		DoTest(now.Format("20060102"), next.Format("20060102"))
+		weekday := next.Weekday()
+		if weekday != time.Saturday && weekday != time.Sunday {
+			fmt.Println("Go")
+			DoTest(yesterday.Format("20060102"), next.Format("20060102"))
+			yesterday = next
+		}
 	}
 }
 
