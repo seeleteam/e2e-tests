@@ -42,14 +42,14 @@ func prepareDB(dbName string) (database.Database, error) {
 }
 
 // Save the e2e test result
-func Save(date, buildresult, coverresult, benchresult string) {
+func Save(date, buildresult, benchresult string, coverbyte []byte) {
 	db.Put([]byte(date+BuildKey), []byte(buildresult))
-	db.Put([]byte(date+CoverKey), []byte(coverresult))
+	db.Put([]byte(date+CoverKey), coverbyte)
 	db.Put([]byte(date+BenchKey), []byte(benchresult))
 }
 
 // Get the e2e test result
-func Get(date string) (buildresult, coverresult, benchresult string) {
+func Get(date string) (buildresult, benchresult string, coverbyte []byte) {
 	buildbyte, err := db.Get([]byte(date + BuildKey))
 	if err != nil {
 		fmt.Println("get build result err:", err)
@@ -57,12 +57,11 @@ func Get(date string) (buildresult, coverresult, benchresult string) {
 	}
 	buildresult = string(buildbyte)
 
-	coverbyte, err := db.Get([]byte(date + CoverKey))
+	coverbyte, err = db.Get([]byte(date + CoverKey))
 	if err != nil {
 		fmt.Println("get cover result err:", err)
 		return
 	}
-	coverresult = string(coverbyte)
 
 	benchbyte, err := db.Get([]byte(date + BenchKey))
 	if err != nil {
@@ -70,5 +69,5 @@ func Get(date string) (buildresult, coverresult, benchresult string) {
 		return
 	}
 
-	return string(buildbyte), string(coverbyte), string(benchbyte)
+	return string(buildbyte), string(benchbyte), coverbyte
 }

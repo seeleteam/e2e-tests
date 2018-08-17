@@ -1,5 +1,5 @@
 #!/bin/bash
-cd $GOPATH/src/github.com/seeleteam/e2e-tests/e2e-tests
+cd $GOPATH/src/github.com/seeleteam/e2e-tests/e2e
 pwd
 ls
 git pull
