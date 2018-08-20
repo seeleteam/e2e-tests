@@ -30,4 +30,9 @@ func Test_PrintSpecifiedPkg(t *testing.T) {
 	specified["p2p"] = "ok      github.com/seeleteam/go-seele/p2p       2.056s  coverage: 21.0% of statements"
 	result1 := PrintSpecifiedPkg(date, specified)
 	assert.Equal(t, strings.Contains(result1, "FAIL"), false)
+
+	// save and get
+	store.Save("20180816", "", "", []byte("asdf"))
+	result = PrintSpecifiedPkg(date, specified)
+	assert.Equal(t, strings.Contains(result, "Unmarshal"), true)
 }

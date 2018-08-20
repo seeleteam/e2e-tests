@@ -51,7 +51,7 @@ func PrintSpecifiedPkg(yestoday string, specified map[string]string) string {
 	yestodaySpec := make(map[string]string)
 	_, _, coverByte := store.Get(yestoday)
 	if err := json.Unmarshal(coverByte, &yestodaySpec); err != nil {
-		return fmt.Sprintf("Unmarshal yestodaySpec FAIL: %s", err)
+		return ""
 	}
 
 	for k, v := range specified {

@@ -1,8 +1,10 @@
 package bench
 
 import (
+	"archive/zip"
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -63,19 +65,65 @@ func Run(benchPath string) string {
 
 		benchout += string(topN)[strings.Index(string(topN), "(pprof)"):] + "\n\n"
 
-		/* // go tool pprof -svg core.prof > core.svg
-		profout, err := exec.Command("go", "tool", "pprof", "-svg", cpuName+".prof", ">", cpuName+".svg").CombinedOutput()
+		// go tool pprof -png core.prof > core.png
+		profout, err := exec.Command("go", "tool", "pprof", "-png", cpuName+".prof").CombinedOutput()
 		if err != nil {
 			fmt.Println(fmt.Errorf("profout err: %s %s", err, string(profout)))
 			return nil
 		}
+		body := string(profout)
+		googlebugs := "Main binary filename not available."
+		if strings.Contains(body, googlebugs) {
+			body = body[strings.Index(body, googlebugs)+len(googlebugs)+1:]
+		}
 
-		if err := ioutil.WriteFile(cpuName+"_cpu_detail.svg", profout, os.ModePerm); err != nil {
+		if err := ioutil.WriteFile(cpuName+"_cpu_detail.png", []byte(body), os.ModePerm); err != nil {
 			fmt.Printf("writefile err: %s\n", err)
 			return nil
-		} */
+		}
+
 		return nil
 	})
 
 	return benchout
+}
+
+// OutputCompressionReport output bench zip reports
+func OutputCompressionReport(zipName string) string {
+	// compressPkg := "./reports"
+	// if err := os.MkdirAll(compressPkg, os.ModePerm); err != nil {
+	// 	return fmt.Sprintf("MkdirAll compress package[%s] FAIL: %s", compressPkg, err)
+	// }
+
+	file, err := os.Create(zipName)
+	if err != nil {
+		return fmt.Sprintf("Create reports.zip FAIL: %s", err)
+	}
+
+	writer := zip.NewWriter(file)
+	defer writer.Close()
+
+	if err := filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
+		if f != nil && strings.Contains(f.Name(), ".png") {
+			body, err := ioutil.ReadFile(path)
+			if err != nil {
+				return fmt.Errorf("ReadFile fileInfo[%s] FAIL: %s", path, err)
+			}
+
+			fw, err := writer.Create(path)
+			if err != nil {
+				return fmt.Errorf("Create fileInfo[%s] FAIL: %s", path, err)
+			}
+
+			if _, err := fw.Write(body); err != nil {
+				return fmt.Errorf("Write body[%s] FAIL: %s", string(body), err)
+			}
+		}
+
+		return nil
+	}); err != nil {
+		return err.Error()
+	}
+
+	return ""
 }

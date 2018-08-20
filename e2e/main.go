@@ -66,6 +66,7 @@ func DoTest(yesterday, today string) {
 	fmt.Println("cover done")
 	// bench
 	benchresult := bench.Run(config.SeelePath)
+	fmt.Println("OutputCompressionReport result:\n", bench.OutputCompressionReport("bench_reports.zip"))
 	fmt.Println("bench done")
 	// save the result
 	store.Save(today, buildresult, benchresult, coverbyte)
@@ -74,7 +75,7 @@ func DoTest(yesterday, today string) {
 	if buildresult != "" || strings.Contains(coverResult, "FAIL") || strings.Contains(benchresult, "FAIL") {
 		message += "😦 Appears to be a bug!\n\n"
 	} else {
-		attachFile = append(attachFile, config.CoverFileName+".html")
+		attachFile = append(attachFile, config.CoverFileName+".html", "bench_reports.zip")
 		message += "😁 Good day with no error~\n\n"
 	}
 

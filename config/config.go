@@ -10,9 +10,9 @@ const (
 	Sender     = "wangfeifan@zsbatech.com"
 	Password   = "Wff19940326..."
 	SenderName = "Seele-e2e"
-	// Receivers  = "wangfeifan@zsbatech.com"
-	Receivers = "rdc@zsbatech.com"
-	Host      = "smtp.exmail.qq.com:25"
+	Receivers  = "wangfeifan@zsbatech.com"
+	// Receivers = "rdc@zsbatech.com"
+	Host = "smtp.exmail.qq.com:25"
 
 	StartHour = 04
 	StartMin  = 00
