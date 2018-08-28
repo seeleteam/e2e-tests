@@ -65,8 +65,8 @@ func Run(benchPath string) string {
 
 		benchout += string(topN)[strings.Index(string(topN), "(pprof)"):] + "\n\n"
 
-		// go tool pprof -png core.prof > core.png
-		profout, err := exec.Command("go", "tool", "pprof", "-png", cpuName+".prof").CombinedOutput()
+		// go tool pprof -config.BenchReportFormat core.prof > core.prof
+		profout, err := exec.Command("go", "tool", "pprof", "-"+config.BenchReportFormat, cpuName+".prof").CombinedOutput()
 		if err != nil {
 			fmt.Println(fmt.Errorf("profout err: %s %s", err, string(profout)))
 			return nil
@@ -77,7 +77,7 @@ func Run(benchPath string) string {
 			body = body[strings.Index(body, googlebugs)+len(googlebugs)+1:]
 		}
 
-		if err := ioutil.WriteFile(cpuName+"_cpu_detail.png", []byte(body), os.ModePerm); err != nil {
+		if err := ioutil.WriteFile(cpuName+"_cpu_detail."+config.BenchReportFormat, []byte(body), os.ModePerm); err != nil {
 			fmt.Printf("writefile err: %s\n", err)
 			return nil
 		}
@@ -90,11 +90,6 @@ func Run(benchPath string) string {
 
 // OutputCompressionReport output bench zip reports
 func OutputCompressionReport(zipName string) string {
-	// compressPkg := "./reports"
-	// if err := os.MkdirAll(compressPkg, os.ModePerm); err != nil {
-	// 	return fmt.Sprintf("MkdirAll compress package[%s] FAIL: %s", compressPkg, err)
-	// }
-
 	file, err := os.Create(zipName)
 	if err != nil {
 		return fmt.Sprintf("Create reports.zip FAIL: %s", err)
@@ -104,7 +99,7 @@ func OutputCompressionReport(zipName string) string {
 	defer writer.Close()
 
 	if err := filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
-		if f != nil && strings.Contains(f.Name(), ".png") {
+		if f != nil && strings.Contains(f.Name(), "."+config.BenchReportFormat) {
 			body, err := ioutil.ReadFile(path)
 			if err != nil {
 				return fmt.Errorf("ReadFile fileInfo[%s] FAIL: %s", path, err)

@@ -19,5 +19,6 @@ const (
 	StartMin  = 00
 	StartSec  = 00
 
-	BenchTopN = "10"
+	BenchTopN         = "15"
+	BenchReportFormat = "pdf"
 )

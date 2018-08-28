@@ -34,5 +34,5 @@ func Test_PrintSpecifiedPkg(t *testing.T) {
 	// save and get
 	store.Save("20180816", "", "", []byte("asdf"))
 	result = PrintSpecifiedPkg(date, specified)
-	assert.Equal(t, strings.Contains(result, "Unmarshal"), true)
+	assert.Equal(t, result, "")
 }

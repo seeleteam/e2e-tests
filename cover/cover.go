@@ -59,7 +59,7 @@ func PrintSpecifiedPkg(yestoday string, specified map[string]string) string {
 		if !ok {
 			result += v + "\n"
 		} else {
-			result += v + " --> " + out[strings.Index(out, "coverage"):] + "\n"
+			result += out + " --> " + v[strings.Index(v, "coverage"):] + "\n"
 		}
 	}
 
