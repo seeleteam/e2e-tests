@@ -66,12 +66,12 @@ func DoTest(yesterday, today string) {
 	fmt.Println("cover done")
 	// bench
 	benchresult := bench.Run(config.SeelePath)
-	/* the linux have some mistake about the png and svg formats
+	// the google have some mistake about the pprof formats
 	compressd := bench.OutputCompressionReport("bench_reports.zip")
 	fmt.Println("OutputCompressionReport result:\n", compressd)
 	if compressd == "" {
 		attachFile = append(attachFile, "bench_reports.zip")
-	} */
+	}
 	fmt.Println("bench done")
 	// save the result
 	store.Save(today, buildresult, benchresult, coverbyte)
