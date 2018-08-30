@@ -52,6 +52,7 @@ func DoTest(yesterday, today string) {
 		return
 	}
 
+	attachFile = attachFile[:0]
 	workPath := filepath.Join(config.SeelePath, "/...")
 	fmt.Printf("date:%s workPath:%s\n", today, workPath)
 	// build
