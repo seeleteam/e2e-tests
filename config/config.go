@@ -7,8 +7,8 @@ const (
 	CoverPackage  = "common\t,core\t,trie\t,p2p\t,seele\t"
 
 	Subject    = "Daily Test Report"
-	Sender     = "wangfeifan@zsbatech.com"
-	Password   = "Wff19940326..."
+	Sender     = "XXX@zsbatech.com"
+	Password   = "XXX"
 	SenderName = "Seele-e2e"
 	// Receivers  = "wangfeifan@zsbatech.com"
 	// Receivers = "rdc@zsbatech.com"
