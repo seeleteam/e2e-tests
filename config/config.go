@@ -7,13 +7,11 @@ const (
 	CoverPackage  = "common\t,core\t,trie\t,p2p\t,seele\t"
 
 	Subject    = "Daily Test Report"
-	Sender     = "XXX@zsbatech.com"
-	Password   = "XXX"
-	SenderName = "Seele-e2e"
-	// Receivers  = "wangfeifan@zsbatech.com"
-	// Receivers = "rdc@zsbatech.com"
-	Receivers = "dev@seelenet.com"
-	Host      = "smtp.exmail.qq.com:25"
+	Sender     = "send@email.com"
+	Password   = "password"
+	SenderName = "reporter"
+	Receivers  = "receiver@email.com"
+	Host       = "smtp.exmail.qq.com:25"
 
 	StartHour = 04
 	StartMin  = 00
