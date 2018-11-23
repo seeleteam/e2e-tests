@@ -1,3 +1,8 @@
+/**
+*  @file
+*  @copyright defined in go-seele/LICENSE
+ */
+
 package main
 
 import (
@@ -23,41 +28,30 @@ var (
 )
 
 func main() {
-	// now := time.Now()
-	// next := now.Add(time.Hour * 24)
-	// DoTest(now.Format("20060102"), next.Format("20060102"))
-	yesterday := time.Now()
-	for {
-		now := time.Now()
-		next := now.Add(time.Hour * 24)
-		next = time.Date(next.Year(), next.Month(), next.Day(), config.StartHour, config.StartMin, config.StartSec, 0, next.Location())
-		fmt.Println("now:", now)
-		fmt.Println("next:", next)
-		t := time.NewTimer(next.Sub(now))
-		<-t.C
-		t.Stop()
-		weekday := next.Weekday()
-		if weekday != time.Saturday && weekday != time.Sunday {
-			fmt.Println("Go")
-			DoTest(yesterday.Format("20060102"), next.Format("20060102"))
-			yesterday = next
-		}
+	today := time.Now()
+	yesterday := today.Add(-1 * 24 * time.Hour)
+	day := today.Weekday()
+
+	// no work on Saturday and Sunday
+	if day != time.Saturday && day != time.Sunday {
+		DoTest(yesterday.Format("20060102"), today.Format("20060102"))
 	}
 }
 
 // DoTest seele test
 func DoTest(yesterday, today string) {
-	if updateresult := updateSeele(); updateresult != "" {
-		fmt.Println("updateresult:", updateresult)
-		return
-	}
-
 	attachFile = attachFile[:0]
 	workPath := filepath.Join(config.SeelePath, "/...")
-	fmt.Printf("date:%s workPath:%s\n", today, workPath)
+	fmt.Printf("yesterday:%s, today:%s, workPath:%s\n", yesterday, today, workPath)
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(fmt.Sprintf("Failed to get working directory %s", err))
+	}
+
+	fmt.Println("currrent working dir", dir)
 	// build
-	buildresult := build(workPath)
-	fmt.Println("build done")
+	// buildresult := build(workPath)
+	// fmt.Println("build done")
 	// cover
 	coverResult, specified := cover.Run(workPath)
 	coverbyte, err := json.Marshal(specified)
@@ -75,40 +69,24 @@ func DoTest(yesterday, today string) {
 	}
 	fmt.Println("bench done")
 	// save the result
-	store.Save(today, buildresult, benchresult, coverbyte)
+	// store.Save(today, buildresult, benchresult, coverbyte)
+	store.Save(today, benchresult, coverbyte)
 
 	message := ""
-	if buildresult != "" || strings.Contains(coverResult, "FAIL") || strings.Contains(benchresult, "FAIL") {
+	// if buildresult != "" || strings.Contains(coverResult, "FAIL") || strings.Contains(benchresult, "FAIL") {
+	if strings.Contains(coverResult, "FAIL") || strings.Contains(benchresult, "FAIL") {
 		message += "😦 Appears to be a bug!\n\n"
 	} else {
 		attachFile = append(attachFile, config.CoverFileName+".html")
 		message += "😁 Good day with no error~\n\n"
 	}
 
-	message += cover.PrintSpecifiedPkg(yesterday, specified)
-	message += "\n\n============= Go build seele completed. ===============\n" + buildresult
+	// message += cover.PrintSpecifiedPkg(yesterday, specified)
+	// message += "\n\n============= Go build seele completed. ===============\n" + buildresult
 	message += "\n\n============= Go cover seele completed. ===============\n" + coverResult
 	message += "\n\n============= Go bench seele completed. ===============\n" + benchresult
 
 	sendEmail(message, attachFile)
-	filepath.Walk(".", func(path string, f os.FileInfo, err error) error {
-		if strings.Contains(path, "main") || path == "." {
-			return nil
-		}
-
-		fmt.Println("remove path:", path)
-		if err := os.Remove(path); err != nil {
-			fmt.Println("remove err:", err)
-		}
-		return nil
-	})
-}
-
-func updateSeele() string {
-	if updateout, err := exec.Command("git", "pull").CombinedOutput(); err != nil {
-		return fmt.Sprintf("update err: %s %s", err, string(updateout))
-	}
-	return ""
 }
 
 func build(buildPath string) string {
@@ -125,6 +103,7 @@ func sendEmail(message string, attachFile []string) {
 	fmt.Println(message, attachFile)
 	msg := email.NewMessage(config.Subject, message)
 	msg.From, msg.To = mail.Address{Name: config.SenderName, Address: config.Sender}, strings.Split(config.Receivers, ";")
+	msg.Cc = strings.Split(config.CC, ";")
 	for _, filePath := range attachFile {
 		if err := msg.Attach(filePath); err != nil {
 			fmt.Printf("failed to add attach file. path: %s, err: %s\n", filePath, err)

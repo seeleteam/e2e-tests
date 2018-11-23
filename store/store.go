@@ -1,3 +1,8 @@
+/**
+*  @file
+*  @copyright defined in go-seele/LICENSE
+ */
+
 package store
 
 import (
@@ -42,22 +47,14 @@ func prepareDB(dbName string) (database.Database, error) {
 }
 
 // Save the e2e test result
-func Save(date, buildresult, benchresult string, coverbyte []byte) {
-	db.Put([]byte(date+BuildKey), []byte(buildresult))
+func Save(date, benchresult string, coverbyte []byte) {
 	db.Put([]byte(date+CoverKey), coverbyte)
 	db.Put([]byte(date+BenchKey), []byte(benchresult))
 }
 
 // Get the e2e test result
-func Get(date string) (buildresult, benchresult string, coverbyte []byte) {
-	buildbyte, err := db.Get([]byte(date + BuildKey))
-	if err != nil {
-		fmt.Println("get build result err:", err)
-		return
-	}
-	buildresult = string(buildbyte)
-
-	coverbyte, err = db.Get([]byte(date + CoverKey))
+func Get(date string) (benchresult string, coverbyte []byte) {
+	coverbyte, err := db.Get([]byte(date + CoverKey))
 	if err != nil {
 		fmt.Println("get cover result err:", err)
 		return
@@ -69,5 +66,5 @@ func Get(date string) (buildresult, benchresult string, coverbyte []byte) {
 		return
 	}
 
-	return string(buildbyte), string(benchbyte), coverbyte
+	return string(benchbyte), coverbyte
 }
