@@ -1,3 +1,8 @@
+/**
+*  @file
+*  @copyright defined in go-seele/LICENSE
+ */
+
 package config
 
 // config.go
@@ -11,6 +16,7 @@ const (
 	Password   = "password"
 	SenderName = "reporter"
 	Receivers  = "receiver@email.com"
+	CC         = "CC@email.com"
 	Host       = "smtp.exmail.qq.com:25"
 
 	StartHour = 04

@@ -1,3 +1,8 @@
+/**
+*  @file
+*  @copyright defined in go-seele/LICENSE
+ */
+
 package cover
 
 import (
@@ -22,7 +27,7 @@ func Test_PrintSpecifiedPkg(t *testing.T) {
 	specified["core"] = "ok      github.com/seeleteam/go-seele/core      4.745s  coverage: 76.3% of statements"
 	bytes, err := json.Marshal(specified)
 	assert.Equal(t, err, nil)
-	store.Save(date, "", "", bytes)
+	store.Save(date, "", bytes)
 
 	result := PrintSpecifiedPkg(date, specified)
 	assert.Equal(t, strings.Contains(result, "FAIL"), false)
@@ -32,7 +37,7 @@ func Test_PrintSpecifiedPkg(t *testing.T) {
 	assert.Equal(t, strings.Contains(result1, "FAIL"), false)
 
 	// save and get
-	store.Save("20180816", "", "", []byte("asdf"))
+	store.Save("20180816", "", []byte("asdf"))
 	result = PrintSpecifiedPkg(date, specified)
 	assert.Equal(t, result, "")
 }

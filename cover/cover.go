@@ -1,3 +1,8 @@
+/**
+*  @file
+*  @copyright defined in go-seele/LICENSE
+ */
+ 
 package cover
 
 import (
@@ -49,7 +54,7 @@ func Run(coverPath string) (all string, specified map[string]string) {
 func PrintSpecifiedPkg(yestoday string, specified map[string]string) string {
 	result := "\n============= Change in coverage of major packages compared to yesterday ===============\n\n"
 	yestodaySpec := make(map[string]string)
-	_, _, coverByte := store.Get(yestoday)
+	_, coverByte := store.Get(yestoday)
 	if err := json.Unmarshal(coverByte, &yestodaySpec); err != nil {
 		return ""
 	}
